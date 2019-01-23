@@ -4,7 +4,7 @@ set -e
 CURRENT_DIR=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
 source ${CURRENT_DIR}/../common/common.sh
 
-[ $(id -u) != "0" ] && { ansi -n --bold --bg-red "请用 root 账户执行本脚本"; exit 1; }
+# [ $(id -u) != "0" ] && { ansi -n --bold --bg-red "请用 root 账户执行本脚本"; exit 1; }
 
 MYSQL_ROOT_PASSWORD=`random_string`
 
@@ -16,8 +16,8 @@ function init_system {
 
     ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
 
-    apt-get update
-    apt-get install -y software-properties-common
+   sudo apt-get update
+   sudo apt-get install -y software-properties-common
 
     init_alias
 }
@@ -40,16 +40,16 @@ function init_repositories {
     echo 'deb https://mirrors.tuna.tsinghua.edu.cn/nodesource/deb_8.x xenial main' > /etc/apt/sources.list.d/nodesource.list
     echo 'deb-src https://mirrors.tuna.tsinghua.edu.cn/nodesource/deb_8.x xenial main' >> /etc/apt/sources.list.d/nodesource.list
 
-    apt-get update
+  sudo  apt-get update
 }
 
 function install_basic_softwares {
-    apt-get install -y curl git build-essential unzip supervisor
+   sudo apt-get install -y curl git build-essential unzip supervisor
 }
 
 function install_node_yarn {
-    apt-get install -y nodejs yarn
-    sudo -H -u ${WWW_USER} sh -c 'cd ~ && yarn config set registry https://registry.npm.taobao.org'
+  sudo  apt-get install -y nodejs yarn
+    sudo -H -u $USER sh -c 'cd ~ && yarn config set registry https://registry.npm.taobao.org'
 }
 
 function install_php {
@@ -57,19 +57,27 @@ function install_php {
 }
 
 function install_others {
-    apt-get remove -y apache2
+   sudo apt-get remove -y apache2
     debconf-set-selections <<< "mysql-server mysql-server/root_password password ${MYSQL_ROOT_PASSWORD}"
     debconf-set-selections <<< "mysql-server mysql-server/root_password_again password ${MYSQL_ROOT_PASSWORD}"
-    apt-get install -y nginx mysql-server redis-server memcached beanstalkd sqlite3
-    chown -R ${WWW_USER}.${WWW_USER_GROUP} /var/www/
-    systemctl enable nginx.service
+   sudo apt-get install -y nginx mysql-server redis-server memcached beanstalkd sqlite3
+   sudo  chown -R $USER.${WWW_USER_GROUP} /var/www/
+   sudo systemctl enable nginx.service
 }
 
 function install_composer {
-    wget https://dl.laravel-china.org/composer.phar -O /usr/local/bin/composer
-    chmod +x /usr/local/bin/composer
-    sudo -H -u ${WWW_USER} sh -c  'cd ~ && composer config -g repo.packagist composer https://packagist.laravel-china.org'
+    sudo wget https://dl.laravel-china.org/composer.phar -O /usr/local/bin/composer
+    sudo  chmod +x /usr/local/bin/composer
+    sudo -H -u $USER sh -c  'cd ~ && composer config -g repo.packagist composer https://packagist.laravel-china.org'
 }
+
+function install_valet {
+    sudo apt-get install libnss3-tools jq xsel
+    composer global require cpriego/valet-linux
+    valet install
+    valet domain com
+}
+
 
 call_function init_system "正在初始化系统" ${LOG_PATH}
 call_function init_repositories "正在初始化软件源" ${LOG_PATH}
@@ -78,6 +86,7 @@ call_function install_php "正在安装 PHP" ${LOG_PATH}
 call_function install_others "正在安装 Mysql / Nginx / Redis / Memcached / Beanstalkd / Sqlite3" ${LOG_PATH}
 call_function install_node_yarn "正在安装 Nodejs / Yarn" ${LOG_PATH}
 call_function install_composer "正在安装 Composer" ${LOG_PATH}
+call_function install_valet "正在安装 Valet" ${LOG_PATH}
 
 ansi --green --bold -n "安装完毕"
 ansi --green --bold "Mysql root 密码："; ansi -n --bold --bg-yellow --black ${MYSQL_ROOT_PASSWORD}

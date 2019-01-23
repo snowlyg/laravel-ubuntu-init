@@ -13,7 +13,7 @@ nc="\e[0m"
 
 echo -e "${green}===> 开始下载...${nc}"
 cd $HOME
-wget -q https://github.com/summerblue/laravel-ubuntu-init/archive/master.tar.gz -O laravel-ubuntu-init.tar.gz
+wget -q https://github.com/snowlyg/laravel-ubuntu-init/archive/master.tar.gz -O laravel-ubuntu-init.tar.gz
 rm -rf laravel-ubuntu-init
 tar zxf laravel-ubuntu-init.tar.gz
 mv laravel-ubuntu-init-master laravel-ubuntu-init
@@ -22,12 +22,12 @@ echo -e "${green}===> 下载完毕${nc}"
 echo ""
 echo -e "${green}安装脚本位于： ${HOME}/laravel-ubuntu-init${nc}"
 
-[ $(id -u) != "0" ] && {
-    source ${HOME}/laravel-ubuntu-init/common/ansi.sh
-    ansi -n --bold --bg-yellow --black "当前账户并非 root，请用 root 账户执行安装脚本（使用命令：sudo -H -s 切换为 root）"
-} || {
+# [ $(id -u) != "0" ] && {
+#     source ${HOME}/laravel-ubuntu-init/common/ansi.sh
+#     ansi -n --bold --bg-yellow --black "当前账户并非 root，请用 root 账户执行安装脚本（使用命令：sudo -H -s 切换为 root）"
+# } || {
     bash ./laravel-ubuntu-init/16.04/install.sh
-}
+# }
 
 cd - > /dev/null
 } # this ensures the entire script is downloaded #
